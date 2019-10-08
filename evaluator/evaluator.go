@@ -1,9 +1,9 @@
 package evaluator
 
 import (
+	"fmt"
 	"interpreter/ast"
 	"interpreter/object"
-	"fmt"
 	"interpreter/token"
 )
 
@@ -25,7 +25,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		index := Eval(node.Index, env)
 		if isError(index) {
-			return index;
+			return index
 		}
 		return evalIndexExpression(left, index)
 
@@ -107,7 +107,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		left := Eval(node.Left, env)
 		right := Eval(node.Right, env)
 		if isError(left) {
-			return left;
+			return left
 		}
 		if isError(right) {
 			return right
@@ -190,11 +190,11 @@ func isTruthy(obj object.Object) bool {
 	case NULL:
 		return false
 	case TRUE:
-		return true;
+		return true
 	case FALSE:
-		return false;
+		return false
 	default:
-		return true;
+		return true
 	}
 }
 func evalInfixExpression(operator string, left object.Object, right object.Object) object.Object {
