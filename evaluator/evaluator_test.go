@@ -42,7 +42,7 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 		t.Errorf("object has wrong value. got=%d want %d", result.Value, expected)
 
 	}
-	return true;
+	return true
 }
 
 func TestEvalBooleanExpression(t *testing.T) {
@@ -69,10 +69,10 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 
 	if result.Value != expected {
 		t.Errorf("object has wrong value. got=%t, want=%t", result.Value, expected)
-		return false;
+		return false
 	}
 
-	return true;
+	return true
 }
 
 func TestBangOperator(t *testing.T) {
@@ -197,9 +197,9 @@ func TestIfElseExpressions(t *testing.T) {
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != NULL {
 		t.Errorf("object not null . got %T (%+v)", obj, obj)
-		return false;
+		return false
 	}
-	return true;
+	return true
 }
 func TestErrorHandling(t *testing.T) {
 	tests := []struct {
@@ -210,7 +210,7 @@ func TestErrorHandling(t *testing.T) {
 		{"5 + true; 5", "type mismatch: INTEGER + BOOLEAN"},
 		//{"foobar", "indentifier not found: foobar"},
 		{`"Hello" - "WORLD"`, "unknown operator: STRING - STRING"},
-		{`{"name": "Monkey"}[fn(x) { x }];`, "unusable as hash key: FUNCTION",},
+		{`{"name": "Monkey"}[fn(x) { x }];`, "unusable as hash key: FUNCTION"},
 		//{"-true", "unknown operator: -BOOLEAN"},
 		//{
 		//	"if (10 > 1) { true + false; }",
@@ -377,8 +377,6 @@ func TestArrayIndexExpressions(t *testing.T) {
 
 func TestHashLiterals(t *testing.T) {
 
-
-
 	input := `let two = "two"; 
 	{
 		"one": 10 - 9,
@@ -400,9 +398,9 @@ func TestHashLiterals(t *testing.T) {
 func TestHashIndexExpressions(t *testing.T) {
 
 	tests := []struct {
-		input string
+		input    string
 		expected interface{}
-	} {
+	}{
 		{
 			`{"foo": 5}["foo"]`, 5,
 		},
@@ -420,7 +418,7 @@ func TestHashIndexExpressions(t *testing.T) {
 		},
 	}
 
-	for _ , tt := range tests {
+	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		integer, ok := tt.expected.(int)
 		if ok {

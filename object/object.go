@@ -1,41 +1,52 @@
 package object
 
 import (
-	"fmt"
-	"interpreter/ast"
 	"bytes"
-	"strings"
+	"fmt"
 	"hash/fnv"
+	"interpreter/ast"
+	"interpreter/code"
+	"strings"
 )
 
 type ObjectType string
 
 const (
-	BOOLEAN_OBJ      = "BOOLEAN"
-	INTEGER_OBJ      = "INTEGER"
-	NULL_OBJ         = "NULL"
-	RETURN_VALUE_OBJ = "RETURN_VALUE"
-	ERROR_OBJ        = "ERROR"
-	FUNCTION_OBJ     = "FUNCTION"
-	STRING_OBJ       = "STRING"
-	BUILTIN_OBJ      = "BUILTIN"
-	ARRAY_OBJ        = "ARRAY"
-	HASH_OBJ         = "HASH"
-	QUOTE_OBJ        = "QUOTE"
-	MACRO_OBJ ="MACRO"
+	BOOLEAN_OBJ           = "BOOLEAN"
+	INTEGER_OBJ           = "INTEGER"
+	NULL_OBJ              = "NULL"
+	RETURN_VALUE_OBJ      = "RETURN_VALUE"
+	ERROR_OBJ             = "ERROR"
+	FUNCTION_OBJ          = "FUNCTION"
+	STRING_OBJ            = "STRING"
+	BUILTIN_OBJ           = "BUILTIN"
+	ARRAY_OBJ             = "ARRAY"
+	HASH_OBJ              = "HASH"
+	QUOTE_OBJ             = "QUOTE"
+	MACRO_OBJ             = "MACRO"
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION_OBJ"
 )
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+func (cf *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", cf)
+}
 
 type Macro struct {
 	Parameters []*ast.Identifier
-	Body *ast.BlockStatement
-	Env *Environment
+	Body       *ast.BlockStatement
+	Env        *Environment
 }
 
 func (m *Macro) Type() ObjectType { return MACRO_OBJ }
 func (m *Macro) Inspect() string {
 	var out bytes.Buffer
 	params := []string{}
-	for _, p:= range m.Parameters {
+	for _, p := range m.Parameters {
 		params = append(params, p.String())
 	}
 
@@ -159,7 +170,7 @@ func (s *String) HashKey() HashKey {
 	return HashKey{Type: s.Type(), Value: h.Sum64()}
 }
 
-type BuiltinFunction func(args ...Object) Object;
+type BuiltinFunction func(args ...Object) Object
 
 func (ao *Array) Type() ObjectType { return ARRAY_OBJ }
 func (ao *Array) Inspect() string {
