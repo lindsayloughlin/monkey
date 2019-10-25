@@ -46,6 +46,7 @@ const (
 	OpSetLocal
 	OpGetBuiltin
 	OpClosure
+	OpGetFree
 )
 
 var definitions = map[Opcode]*Definition{
@@ -77,6 +78,7 @@ var definitions = map[Opcode]*Definition{
 	OpCall:          {"OpCall", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 	OpClosure:       {"OpClosure", []int{2, 1}},
+	OpGetFree:       {"OpGetFree", []int{1}},
 }
 
 func (ins Instructions) String() string {

@@ -253,17 +253,47 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-
+		case code.OpClosure:
+			constIndex := code.ReadUint16(ins[ip+1:])
+			numFree := code.ReadUint8(ins[ip+3:])
+			vm.currentFrame().ip += 3
+			err := vm.pushClosure(int(constIndex), int(numFree))
+			if err != nil {
+				return err
+			}
+		case code.OpGetFree:
+			freeIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			currentClosure := vm.currentFrame().cl
+			err := vm.push(currentClosure.Free[freeIndex])
+			if err != nil {
+				return err
+			}
 		}
 
 	}
 	return nil
 }
+func (vm *VM) pushClosure(constIndex int, numFree int) error {
+	constant := vm.constants[constIndex]
+	function, ok := constant.(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("not a function: %+v", constant)
+	}
+	free := make([]object.Object, numFree)
+	for i := 0; i < numFree; i++ {
+		free[i] = vm.stack[vm.sp-numFree+i]
+	}
+	vm.sp = vm.sp - numFree
+	closure := &object.Closure{Fn: function, Free: free}
+	return vm.push(closure)
+}
+
 func (vm *VM) executeCall(numArgs int) error {
 	callee := vm.stack[vm.sp-1-numArgs]
 	switch callee := callee.(type) {
-	case *object.CompiledFunction:
-		return vm.callFunction(callee, numArgs)
+	case *object.Closure:
+		return vm.callClosure(callee, numArgs)
 	case *object.Builtin:
 		return vm.callBuiltin(callee, numArgs)
 	default:
@@ -271,6 +301,16 @@ func (vm *VM) executeCall(numArgs int) error {
 	}
 }
 
+func (vm *VM) callClosure(cl *object.Closure, numArgs int) error {
+	if numArgs != cl.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", cl.Fn.NumParameters,
+			numArgs)
+	}
+	frame := NewFrame(cl, vm.sp-numArgs)
+	vm.pushFrame(frame)
+	vm.sp = frame.basePointer + cl.Fn.NumLocals
+	return nil
+}
 func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 	args := vm.stack[vm.sp-numArgs : vm.sp]
 	result := builtin.Fn(args...)
@@ -282,15 +322,16 @@ func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 	}
 	return nil
 }
-func (vm *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
-	if numArgs != fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
-	}
-	frame := NewFrame(fn, vm.sp-numArgs)
-	vm.pushFrame(frame)
-	vm.sp = frame.basePointer + fn.NumLocals
-	return nil
-}
+
+// func (vm *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
+// 	if numArgs != fn.NumParameters {
+// 		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+// 	}
+// 	frame := NewFrame(fn, vm.sp-numArgs)
+// 	vm.pushFrame(frame)
+// 	vm.sp = frame.basePointer + fn.NumLocals
+// 	return nil
+// }
 func (vm *VM) buildHash(startIndex, endIndex int) (object.Object, error) {
 	hashedPairs := make(map[object.HashKey]object.HashPair)
 	for i := startIndex; i < endIndex; i += 2 {
